@@ -1,8 +1,8 @@
-// conseguir el canva
+// Conseguir el canva
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
-// darle propiedades al cuadrado
+// Darle propiedades al cuadrado
 const squareSize = 50;
 let squareX = canvas.width / 2 - squareSize / 2;
 let squareY = canvas.height / 2 - squareSize / 2;
