@@ -1,3 +1,4 @@
+// hola marc que tal que te parece mi código?? a que está chulo?
 // Conseguir el canva
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
@@ -21,7 +22,7 @@ function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// mover el cuadradito
+// Mover el cuadradito
 function moveSquare(event) {
   switch (event.keyCode) {
     case 37: // Izquierda
