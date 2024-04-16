@@ -63,3 +63,83 @@ document.addEventListener('keydown', function(event) {
 
 // Dibujo inicial
 drawSquare();
+
+const i = 4;
+const j = 5;
+
+const matrix=[
+	[".", ".", ".", ".", ".", ".", ".", ".", "."],
+  [".", ".", ".", ".", ".", ".", ".", ".", "."],
+  [".", ".", ".", ".", ".", ".", ".", "O", "."],
+  [".", ".", ".", ".", ".", ".", ".", ".", "."],
+  [".", ".", ".", ".", ".", ".", ".", ".", "."],
+  [".", ".", ".", ".", ".", ".", ".", ".", "."],
+  [".", ".", ".", ".", ".", ".", ".", ".", "."],
+  [".", ".", ".", ".", ".", ".", ".", ".", "."],
+  [".", ".", ".", ".", ".", ".", ".", ".", "."],
+];
+
+const visitats=[
+	[false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false, false, false],
+];
+
+matrix[i][j] = 'X';
+
+function bfs(i_ini, j_ini){
+  console.log(matrix[5].length);
+  /*for(let i=0; i < matrix[5].length; ++i) {
+    console.log(matrix[5][i] + "-" + i);
+}*/
+var cola = [];
+var found = false;
+cola.push([i_ini,j_ini]);
+
+while (found == false) {
+  var currentposition = cola.shift();
+  console.log(currentposition);
+  var currenti = currentposition[0];
+  var currentj = currentposition[1];
+  if (matrix[currenti][currentj] == 'O') {
+    found = true;
+    console.log('End.');
+  } else {
+    if (visitats[currenti+1][currentj] == false) {
+      cola.push([currenti+1,currentj]);
+      visitats[currenti+1][currentj] = true;
+    }
+    console.log("*****", visitats);
+    console.log(visitats[currenti-1][currentj]);
+
+    if (visitats[currenti-1][currentj] == false) {
+      cola.push([currenti-1,currentj]);
+      visitats[currenti-1][currentj] = true;
+    }
+    if (visitats[currenti][currentj+1] == false) {
+      cola.push([currenti,currentj+1]);
+      visitats[currenti][currentj+1] = true;
+    }
+    if (visitats[currenti][currentj-1] == false) {
+      cola.push([currenti,currentj-1]);
+      visitats[currenti][currentj-1] = true;
+    }
+    
+    //console.log(cola)
+  }
+}
+
+console.log(matrix[i_ini][j_ini]);
+console.log(matrix[i_ini+1][j_ini]);
+console.log(matrix[i_ini-1][j_ini]);
+console.log(matrix[i_ini][j_ini+1]);
+console.log(matrix[i_ini][j_ini-1]);
+}
+
+bfs(2,3);
