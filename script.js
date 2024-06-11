@@ -1,4 +1,3 @@
-// hola marc que tal que te parece mi código?? a que está chulo?
 // Conseguir el canva
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
@@ -70,12 +69,12 @@ const j = 5;
 const matrix=[
 	[".", ".", ".", ".", ".", ".", ".", ".", "."],
   [".", ".", ".", ".", ".", ".", ".", ".", "."],
-  [".", ".", ".", ".", ".", ".", ".", "O", "."],
   [".", ".", ".", ".", ".", ".", ".", ".", "."],
   [".", ".", ".", ".", ".", ".", ".", ".", "."],
   [".", ".", ".", ".", ".", ".", ".", ".", "."],
   [".", ".", ".", ".", ".", ".", ".", ".", "."],
   [".", ".", ".", ".", ".", ".", ".", ".", "."],
+  ["O", ".", ".", ".", ".", ".", ".", ".", "."],
   [".", ".", ".", ".", ".", ".", ".", ".", "."],
 ];
 
@@ -91,55 +90,78 @@ const visitats=[
   [false, false, false, false, false, false, false, false, false],
 ];
 
-matrix[i][j] = 'X';
+const matrixpath=[
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+  [[], [], [], [], [], [], [], [], []],
+];
+
+const UP = [-1,0];
+const DOWN = [1,0];
+const LEFT = [0,-1];
+const RIGHT = [0,1];
+
+var monedaI; 
+var monedaJ;
 
 function bfs(i_ini, j_ini){
-  console.log(matrix[5].length);
-  /*for(let i=0; i < matrix[5].length; ++i) {
-    console.log(matrix[5][i] + "-" + i);
-}*/
-var cola = [];
-var found = false;
-cola.push([i_ini,j_ini]);
+  var cola = [];
+  var found = false;
+  cola.push([i_ini,j_ini]);
+  console.log(i_ini,j_ini,matrix[i_ini][j_ini])
 
-while (found == false) {
-  var currentposition = cola.shift();
-  console.log(currentposition);
-  var currenti = currentposition[0];
-  var currentj = currentposition[1];
-  if (matrix[currenti][currentj] == 'O') {
-    found = true;
-    console.log('End.');
-  } else {
-    if (visitats[currenti+1][currentj] == false) {
-      cola.push([currenti+1,currentj]);
-      visitats[currenti+1][currentj] = true;
-    }
-    console.log("*****", visitats);
-    console.log(visitats[currenti-1][currentj]);
+  while (found == false) {
+    var currentposition = cola.shift();
+    var currenti = currentposition[0];
+    var currentj = currentposition[1];
+    if (matrix[currenti][currentj] == 'O') {
+      found = true;
+      console.log('Moneda trobada a:', currenti, currentj);
+      monedaI = currenti;
+      monedaJ = currentj;
 
-    if (visitats[currenti-1][currentj] == false) {
-      cola.push([currenti-1,currentj]);
-      visitats[currenti-1][currentj] = true;
+    } else {
+      if (currentj>=0 && currenti+1>=0 && currentj<matrix[0].length && currenti+1<matrix.length && visitats[currenti+1][currentj] == false) {
+        cola.push([currenti+1,currentj]);
+        visitats[currenti+1][currentj] = true;
+        
+        matrixpath[currenti+1][currentj].push(...matrixpath[currenti][currentj],DOWN);
+      }
+      if (currentj>=0 && currenti-1>=0 && currentj<matrix[0].length && currenti-1<matrix.length && visitats[currenti-1][currentj] == false) {
+        cola.push([currenti-1,currentj]);
+        visitats[currenti-1][currentj] = true;
+        
+        matrixpath[currenti-1][currentj].push(...matrixpath[currenti][currentj],UP);
+      }
+      if (currentj+1>=0 && currenti>=0 && currentj+1<matrix[0].length && currenti<matrix.length && visitats[currenti][currentj+1] == false) {
+        cola.push([currenti,currentj+1]);
+        visitats[currenti][currentj+1] = true;
+        
+        matrixpath[currenti][currentj+1].push(...matrixpath[currenti][currentj],RIGHT);
+      }
+      if (currentj-1>=0 && currenti>=0 && currentj-1<matrix[0].length && currenti<matrix.length && visitats[currenti][currentj-1] == false) {
+        cola.push([currenti,currentj-1]);
+        visitats[currenti][currentj-1] = true;
+
+        matrixpath[currenti][currentj-1].push(...matrixpath[currenti][currentj],LEFT);
+      }
     }
-    if (visitats[currenti][currentj+1] == false) {
-      cola.push([currenti,currentj+1]);
-      visitats[currenti][currentj+1] = true;
-    }
-    if (visitats[currenti][currentj-1] == false) {
-      cola.push([currenti,currentj-1]);
-      visitats[currenti][currentj-1] = true;
-    }
-    
-    //console.log(cola)
   }
-}
-
-console.log(matrix[i_ini][j_ini]);
-console.log(matrix[i_ini+1][j_ini]);
-console.log(matrix[i_ini-1][j_ini]);
-console.log(matrix[i_ini][j_ini+1]);
-console.log(matrix[i_ini][j_ini-1]);
-}
+} 
 
 bfs(2,3);
+
+for(let i=0; i < matrixpath[monedaI][monedaJ].length; i++){
+  console.log(matrixpath[monedaI][monedaJ][i]);
+
+  // ara s'ha de moure
+  if (matrixpath[monedaI][monedaJ][i] == DOWN) if (squareY < canvas.height - squareSize) {
+    squareY += moveSpeed;
+  }
+}
