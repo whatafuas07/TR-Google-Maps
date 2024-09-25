@@ -1,16 +1,248 @@
 <!DOCTYPE html>
-<html>
+<html lang="ca">
 <head>
-  <title>Moving Square</title>
-  <style>
-    canvas {
-      border: 1px solid black;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moviment X i O en Canvas</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
-  <canvas id="myCanvas" width="400" height="400"></canvas> 
-  
-  <script src="script.js"></script>
+
+    <a>Columna inicial del jugador</a>
+    <input type="text" />
+    <br>
+    
+    <a>Fila inicial del jugador</a>
+    <input type="text" />
+    <br>
+
+    <a>Columna inicial de la moneda</a>
+    <input type="text" />
+    <br>
+
+    <a>Fila inicial de la moneda</a>
+    <input type="text" />
+    <br>
+
+    <button onclick="">
+        Pintar moneda i jugador
+    </button>
+    <br>
+
+    <canvas id="gameCanvas" width="300" height="300"></canvas>
+    <!-- <script src="script.js"/> -->
+    <script>
+        let playerPos = { x: 4, y: 3 }; // Posició inicial de "X"
+        let coinPos = { x: 0, y: 7 }; // Posició inicial de "O"
+        let coinEaten = false; // Indica si "O" ha estat menjada per "X"
+
+        const matrix = [
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", ".", "."]
+        ];
+
+        // TASCA: escriure a matrix una X en la posició playerPos
+        // TASCA: escriure a matrix una O en la posició coinPos
+
+        const visitats=[
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false, false],
+        ];
+
+        const matrixpath=[
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+          [[], [], [], [], [], [], [], [], []],
+        ];
+
+        const UP = [-1,0];
+        const DOWN = [1,0];
+        const LEFT = [0,-1];
+        const RIGHT = [0,1];
+
+        var monedaI; 
+        var monedaJ;
+
+        function bfs(i_ini, j_ini){
+          var cola = [];
+          var found = false;
+          cola.push([i_ini,j_ini]);
+          console.log(i_ini,j_ini,matrix[i_ini][j_ini])
+
+          while (found == false) {
+            var currentposition = cola.shift();
+            var currenti = currentposition[0];
+            var currentj = currentposition[1];
+            if (matrix[currenti][currentj] == 'O') {
+              found = true;
+              console.log('Moneda trobada a:', currenti, currentj);
+              monedaI = currenti;
+              monedaJ = currentj;
+
+              //console.log(matrixpath);
+
+              for (let i=0; i < matrixpath[monedaI][monedaJ].length; i++) {
+                //console.log(matrixpath[monedaI][monedaJ][i]);
+                if (matrixpath[monedaI][monedaJ][i]==DOWN){
+                    moveDown();
+                }
+
+                if (matrixpath[monedaI][monedaJ][i]==LEFT){
+                    moveLeft();
+                }
+
+                if (matrixpath[monedaI][monedaJ][i]==RIGHT){
+                    moveRight();
+                }
+
+                if (matrixpath[monedaI][monedaJ][i]==UP){
+                    moveUp();
+                }
+
+              }
+            } else {
+              if (currentj>=0 && currenti+1>=0 && currentj<matrix[0].length && currenti+1<matrix.length && visitats[currenti+1][currentj] == false) {
+                cola.push([currenti+1,currentj]);
+                visitats[currenti+1][currentj] = true;
+                
+                matrixpath[currenti+1][currentj].push(...matrixpath[currenti][currentj],DOWN);
+              }
+              if (currentj>=0 && currenti-1>=0 && currentj<matrix[0].length && currenti-1<matrix.length && visitats[currenti-1][currentj] == false) {
+                cola.push([currenti-1,currentj]);
+                visitats[currenti-1][currentj] = true;
+                
+                matrixpath[currenti-1][currentj].push(...matrixpath[currenti][currentj],UP);
+              }
+              if (currentj+1>=0 && currenti>=0 && currentj+1<matrix[0].length && currenti<matrix.length && visitats[currenti][currentj+1] == false) {
+                cola.push([currenti,currentj+1]);
+                visitats[currenti][currentj+1] = true;
+                
+                matrixpath[currenti][currentj+1].push(...matrixpath[currenti][currentj],RIGHT);
+              }
+              if (currentj-1>=0 && currenti>=0 && currentj-1<matrix[0].length && currenti<matrix.length && visitats[currenti][currentj-1] == false) {
+                cola.push([currenti,currentj-1]);
+                visitats[currenti][currentj-1] = true;
+
+                matrixpath[currenti][currentj-1].push(...matrixpath[currenti][currentj],LEFT);
+              }
+            }
+          }
+        } 
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const cellSize = 30; // Cada cel·la serà de 30x30 píxels
+
+        // Funció per dibuixar la matriu
+        function drawMatrix() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Neteja el canvas
+            for (let row = 0; row < matrix.length; row++) {
+                for (let col = 0; col < matrix[row].length; col++) {
+                    if (matrix[row][col] === "X") {
+                        ctx.fillStyle = "red"; // "X" en vermell
+                    } else if (matrix[row][col] === "O") {
+                        ctx.fillStyle = "blue"; // "O" en blau
+                    } else {
+                        ctx.fillStyle = "black"; // La resta en negre
+                    }
+                    ctx.fillText(matrix[row][col], col * cellSize + 10, row * cellSize + 20);
+                }
+            }
+        }
+
+        // Funcions per moure la "X"
+        function moveUp() {
+            if (playerPos.y > 0) {
+                handleMovement(playerPos.x, playerPos.y - 1);
+            }
+        }
+
+        function moveDown() {
+            if (playerPos.y < matrix.length - 1) {
+                handleMovement(playerPos.x, playerPos.y + 1);
+            }
+        }
+
+        function moveLeft() {
+            if (playerPos.x > 0) {
+                handleMovement(playerPos.x - 1, playerPos.y);
+            }
+        }
+
+        function moveRight() {
+            if (playerPos.x < matrix[0].length - 1) {
+                handleMovement(playerPos.x + 1, playerPos.y);
+            }
+        }
+
+        // Funció per gestionar el moviment i interacció de la "X"
+        function handleMovement(newX, newY) {
+            // Comprova si la "X" està a sobre la "O" i actualitza el flag coinEaten
+            if (newX === coinPos.x && newY === coinPos.y) {
+                coinEaten = true;
+            }
+
+            // Converteix la casella actual de "X" en un "."
+            matrix[playerPos.y][playerPos.x] = coinEaten && playerPos.x === coinPos.x && playerPos.y === coinPos.y ? "." : ".";
+
+            // Mou la "X" a la nova posició
+            playerPos.x = newX;
+            playerPos.y = newY;
+            matrix[playerPos.y][playerPos.x] = "X";
+
+            // Actualitza la matriu
+            drawMatrix();
+        }
+
+        // Capturar les tecles de direcció
+        window.addEventListener("keydown", function (e) {
+            switch (e.key) {
+                case "ArrowUp":
+                    moveUp();
+                    break;
+                case "ArrowDown":
+                    moveDown();
+                    break;
+                case "ArrowLeft":
+                    moveLeft();
+                    break;
+                case "ArrowRight":
+                    moveRight();
+                    break;
+            }
+        });
+
+        // Inicialitza el dibuix
+        drawMatrix();
+    </script>
+
+    <button disabled onclick="bfs(3,4)">
+      BFS
+    </button>
 </body>
 </html>
