@@ -154,7 +154,8 @@
                 //console.log(matrixpath[monedaI][monedaJ][i]);
                 
                     // AQUÍ -> Retard de 500 mil·lisegons per cada moviment
-
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
                     if (matrixpath[monedaI][monedaJ][i]==DOWN){
                         moveDown();
                     }
