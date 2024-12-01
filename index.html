@@ -2,7 +2,7 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width">
     <title>Moviment X i O en Canvas</title>
     <style>
         body {
@@ -29,7 +29,7 @@
 </head>
 <body>
     <div id="container">
-        <canvas id="gameCanvas" width="270" height="270"></canvas>
+        <canvas id="gameCanvas" width="700" height="700"></canvas>
         <div id="buttonContainer">
             <button onclick="paintCoinAndPlayer()">
                 Pintar moneda i jugador
@@ -40,7 +40,9 @@
         </div>
     </div>
     <script>
-        let matrix = Array(9).fill().map(() => Array(9).fill("."));
+        let matrixSize = 20; // Defineix la mida de la matriu
+
+        let matrix = Array(matrixSize).fill().map(() => Array(matrixSize).fill("."));
         let playerPos = { x: null, y: null };
         let coinPos = { x: null, y: null };
         let coinEaten = false;
@@ -49,15 +51,26 @@
             return Math.round((Math.random() * (Math.abs(max - min))) + min);
         }
 
+        let visitats = Array(matrixSize).fill().map(() => Array(matrixSize).fill(false)); // Modificat per usar matrixSize
+        let matrixpath = Array(matrixSize).fill().map(() => Array(matrixSize).fill([])); // Modificat per usar matrixSize
+        let path = Array(matrixSize).fill().map(() => Array(matrixSize).fill(false)); // Matriu per al camí final
+
         function paintCoinAndPlayer() {
-            matrix = Array(9).fill().map(() => Array(9).fill("."));
-            visitats = Array(9).fill().map(() => Array(9).fill(false));
-            matrixpath = Array(9).fill().map(() => Array(9).fill([]));
+            matrix = Array(matrixSize).fill().map(() => Array(matrixSize).fill("."));
+            visitats = Array(matrixSize).fill().map(() => Array(matrixSize).fill(false));
+            matrixpath = Array(matrixSize).fill().map(() => Array(matrixSize).fill([]));
+            path = Array(matrixSize).fill().map(() => Array(matrixSize).fill(false));
 
             playerPos.x = random(0, matrix[0].length - 1);
             playerPos.y = random(0, matrix.length - 1);
             coinPos.x = random(0, matrix[0].length - 1);
             coinPos.y = random(0, matrix.length - 1);
+
+            // Assegurar que el jugador i la moneda no estan a la mateixa posició
+            while (playerPos.x === coinPos.x && playerPos.y === coinPos.y) {
+                coinPos.x = random(0, matrix[0].length - 1);
+                coinPos.y = random(0, matrix.length - 1);
+            }
 
             matrix[playerPos.y][playerPos.x] = "X";
             matrix[coinPos.y][coinPos.x] = "O";
@@ -66,9 +79,6 @@
 
             drawMatrix();
         }
-
-        let visitats = Array(9).fill().map(() => Array(9).fill(false));
-        let matrixpath = Array(9).fill().map(() => Array(9).fill([]));
 
         const UP = [-1, 0];
         const DOWN = [1, 0];
@@ -85,16 +95,48 @@
             var cola = [];
             var found = false;
             cola.push([i_ini, j_ini]);
+            matrixpath[i_ini][j_ini] = [];
 
             while (found == false && cola.length != 0) {
                 var currentposition = cola.shift();
                 var currenti = currentposition[0];
                 var currentj = currentposition[1];
+
+                if (visitats[currenti][currentj]) {
+                    continue; // Saltar si ja ha estat visitat
+                }
+
+                visitats[currenti][currentj] = true; // Marcar com a visitat
+                drawMatrix(); // Dibuixar matriu per actualitzar visuals
+                await new Promise(resolve => setTimeout(resolve, 23)); // Petita pausa per animació
+
                 if (matrix[currenti][currentj] == 'O') {
                     found = true;
                     monedaI = currenti;
                     monedaJ = currentj;
 
+                    // Reconstruir el camí i marcar-lo
+                    let pathMoves = matrixpath[monedaI][monedaJ];
+                    let pathi = playerPos.y;
+                    let pathj = playerPos.x;
+                    path[pathi][pathj] = true;
+
+                    for (let step = 0; step < pathMoves.length; step++) {
+                        let move = pathMoves[step];
+                        if (move === UP) {
+                            pathi -= 1;
+                        } else if (move === DOWN) {
+                            pathi += 1;
+                        } else if (move === LEFT) {
+                            pathj -= 1;
+                        } else if (move === RIGHT) {
+                            pathj += 1;
+                        }
+                        path[pathi][pathj] = true;
+                    }
+                    drawMatrix(); // Actualitzar visuals amb el camí
+
+                    // Moure el jugador pel camí trobat
                     for (let i = 0; i < matrixpath[monedaI][monedaJ].length; i++) {
                         await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -115,29 +157,19 @@
                         }
                     }
                 } else {
-                    if (currentj >= 0 && currenti + 1 >= 0 && currentj < matrix[0].length && currenti + 1 < matrix.length && visitats[currenti + 1][currentj] == false) {
-                        cola.push([currenti + 1, currentj]);
-                        visitats[currenti + 1][currentj] = true;
+                    let directions = [UP, DOWN, LEFT, RIGHT];
+                    for (let dir of directions) {
+                        let newi = currenti + dir[0];
+                        let newj = currentj + dir[1];
 
-                        matrixpath[currenti + 1][currentj] = [...matrixpath[currenti][currentj], DOWN];
-                    }
-                    if (currentj >= 0 && currenti - 1 >= 0 && currentj < matrix[0].length && currenti - 1 < matrix.length && visitats[currenti - 1][currentj] == false) {
-                        cola.push([currenti - 1, currentj]);
-                        visitats[currenti - 1][currentj] = true;
-
-                        matrixpath[currenti - 1][currentj] = [...matrixpath[currenti][currentj], UP];
-                    }
-                    if (currentj + 1 >= 0 && currenti >= 0 && currentj + 1 < matrix[0].length && currenti < matrix.length && visitats[currenti][currentj + 1] == false) {
-                        cola.push([currenti, currentj + 1]);
-                        visitats[currenti][currentj + 1] = true;
-
-                        matrixpath[currenti][currentj + 1] = [...matrixpath[currenti][currentj], RIGHT];
-                    }
-                    if (currentj - 1 >= 0 && currenti >= 0 && currentj - 1 < matrix[0].length && currenti < matrix.length && visitats[currenti][currentj - 1] == false) {
-                        cola.push([currenti, currentj - 1]);
-                        visitats[currenti][currentj - 1] = true;
-
-                        matrixpath[currenti][currentj - 1] = [...matrixpath[currenti][currentj], LEFT];
+                        if (
+                            newi >= 0 && newi < matrix.length &&
+                            newj >= 0 && newj < matrix[0].length &&
+                            !visitats[newi][newj]
+                        ) {
+                            cola.push([newi, newj]);
+                            matrixpath[newi][newj] = [...matrixpath[currenti][currentj], dir];
+                        }
                     }
                 }
             }
@@ -146,7 +178,7 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        const cellSize = 30;
+        const cellSize = 35; // Augmentem la mida de cada cel·la
 
         function drawMatrix() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -156,6 +188,10 @@
                         ctx.fillStyle = "blue"; // Jugador en blau
                     } else if (matrix[row][col] === "O") {
                         ctx.fillStyle = "yellow"; // Moneda en groc
+                    } else if (path[row][col]) {
+                        ctx.fillStyle = "green"; // Camí en verd
+                    } else if (visitats[row][col]) {
+                        ctx.fillStyle = "lightgreen"; // Cel·la visitada en verd clar
                     } else {
                         ctx.fillStyle = "white"; // Cel·la buida
                     }
@@ -197,7 +233,7 @@
                 coinEaten = true;
             }
 
-            matrix[playerPos.y][playerPos.x] = coinEaten && playerPos.x === coinPos.x && playerPos.y === coinPos.y ? "." : ".";
+            matrix[playerPos.y][playerPos.x] = ".";
 
             playerPos.x = newX;
             playerPos.y = newY;
