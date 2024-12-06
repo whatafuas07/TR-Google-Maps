@@ -34,8 +34,17 @@
             <button onclick="paintCoinAndPlayer()">
                 Pintar moneda i jugador
             </button>
+            <button onclick="paintWalls()">
+                Pintar parets
+            </button>
+            <button onclick="deleteWalls()">
+                Esborrar parets
+            </button>
             <button onclick="bfs()">
                 BFS
+            </button>
+            <button onclick="dfs()">
+                DFS
             </button>
         </div>
     </div>
@@ -88,22 +97,22 @@
         var monedaI;
         var monedaJ;
 
-        async function bfs() {
+        async function dfs() {
             const i_ini = playerPos.y;
             const j_ini = playerPos.x;
 
-            var cola = [];
+            var pila = [];
             var found = false;
-            cola.push([i_ini, j_ini]);
+            pila.push([i_ini, j_ini]);
             matrixpath[i_ini][j_ini] = [];
 
-            while (found == false && cola.length != 0) {
-                var currentposition = cola.shift();
+            while (found == false && pila.length != 0) {
+                var currentposition = pila.pop();
                 var currenti = currentposition[0];
                 var currentj = currentposition[1];
 
-                if (visitats[currenti][currentj]) {
-                    continue; // Saltar si ja ha estat visitat
+                if (visitats[currenti][currentj] || matrix[currenti][currentj] == "-") {
+                    continue; // Saltar si ja ha estat visitat o si és un mur
                 }
 
                 visitats[currenti][currentj] = true; // Marcar com a visitat
@@ -165,7 +174,122 @@
                         if (
                             newi >= 0 && newi < matrix.length &&
                             newj >= 0 && newj < matrix[0].length &&
-                            !visitats[newi][newj]
+                            !visitats[newi][newj] &&
+                            matrix[currenti][currentj] != "-"
+                        ) {
+                            pila.push([newi, newj]);
+                            matrixpath[newi][newj] = [...matrixpath[currenti][currentj], dir];
+                        }
+                    }
+                }
+            }
+        }
+
+        function paintWalls() {
+            let wallCount = 0;
+            while (wallCount < 5) {
+                const wallX = random(0, matrixSize - 1);
+                const wallY = random(0, matrixSize - 1);
+
+                // Assegurar que no sobreescrivim jugador, moneda o altres murs
+                if (matrix[wallY][wallX] === "." && !(wallX === playerPos.x && wallY === playerPos.y) && !(wallX === coinPos.x && wallY === coinPos.y)) {
+                    matrix[wallY][wallX] = "-";
+                    wallCount++;
+                }
+            }
+            drawMatrix(); // Actualitzar visuals
+        }
+
+        function deleteWalls() {
+            for (let row = 0; row < matrixSize; row++) {
+                for (let col = 0; col < matrixSize; col++) {
+                    if (matrix[row][col] === "-") {
+                        matrix[row][col] = ".";
+                    }
+                }
+            }
+            drawMatrix(); // Actualitzar visuals
+        }
+
+        async function bfs() {
+            const i_ini = playerPos.y;
+            const j_ini = playerPos.x;
+
+            var cola = [];
+            var found = false;
+            cola.push([i_ini, j_ini]);
+            matrixpath[i_ini][j_ini] = [];
+
+            while (found == false && cola.length != 0) {
+                var currentposition = cola.shift();
+                var currenti = currentposition[0];
+                var currentj = currentposition[1];
+
+                if (visitats[currenti][currentj] || matrix[currenti][currentj] == "-") {
+                    continue; // Saltar si ja ha estat visitat o si és un mur
+                }
+
+                visitats[currenti][currentj] = true; // Marcar com a visitat
+                drawMatrix(); // Dibuixar matriu per actualitzar visuals
+                await new Promise(resolve => setTimeout(resolve, 23)); // Petita pausa per animació
+
+                if (matrix[currenti][currentj] == 'O') {
+                    found = true;
+                    monedaI = currenti;
+                    monedaJ = currentj;
+
+                    // Reconstruir el camí i marcar-lo
+                    let pathMoves = matrixpath[monedaI][monedaJ];
+                    let pathi = playerPos.y;
+                    let pathj = playerPos.x;
+                    path[pathi][pathj] = true;
+
+                    for (let step = 0; step < pathMoves.length; step++) {
+                        let move = pathMoves[step];
+                        if (move === UP) {
+                            pathi -= 1;
+                        } else if (move === DOWN) {
+                            pathi += 1;
+                        } else if (move === LEFT) {
+                            pathj -= 1;
+                        } else if (move === RIGHT) {
+                            pathj += 1;
+                        }
+                        path[pathi][pathj] = true;
+                    }
+                    drawMatrix(); // Actualitzar visuals amb el camí
+
+                    // Moure el jugador pel camí trobat
+                    for (let i = 0; i < matrixpath[monedaI][monedaJ].length; i++) {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+
+                        if (matrixpath[monedaI][monedaJ][i] == DOWN) {
+                            moveDown();
+                        }
+
+                        if (matrixpath[monedaI][monedaJ][i] == LEFT) {
+                            moveLeft();
+                        }
+
+                        if (matrixpath[monedaI][monedaJ][i] == RIGHT) {
+                            moveRight();
+                        }
+
+                        if (matrixpath[monedaI][monedaJ][i] == UP) {
+                            moveUp();
+                        }
+                    }
+                } else {
+                    let directions = [UP, DOWN, LEFT, RIGHT];
+                    for (let dir of directions) {
+                        let newi = currenti + dir[0];
+                        let newj = currentj + dir[1];
+
+                        if (
+                            newi >= 0 && newi < matrix.length &&
+                            newj >= 0 && newj < matrix[0].length &&
+                            !visitats[newi][newj] &&
+                            matrix[currenti][currentj] != "-"
                         ) {
                             cola.push([newi, newj]);
                             matrixpath[newi][newj] = [...matrixpath[currenti][currentj], dir];
@@ -188,6 +312,8 @@
                         ctx.fillStyle = "blue"; // Jugador en blau
                     } else if (matrix[row][col] === "O") {
                         ctx.fillStyle = "yellow"; // Moneda en groc
+                    } else if (matrix[row][col] === "-") {
+                        ctx.fillStyle = "grey"; // Mur en gris
                     } else if (path[row][col]) {
                         ctx.fillStyle = "green"; // Camí en verd
                     } else if (visitats[row][col]) {
