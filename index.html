@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Moviment X i O en Canvas</title>
     <style>
         body {
@@ -28,8 +29,31 @@
     </style>
 </head>
 <body>
-    <div id="container">
-        <canvas id="gameCanvas" width="700" height="700"></canvas>
+    <div id="container-fluid">
+        <div class="row">
+            <!-- Primer contenidor del canvas -->
+            <div id="canvasContainer1" class="col-md-6 canvas-container">
+                <canvas id="gameCanvas1" width="700" height="700"></canvas>
+                <div>
+                    <button onclick="bfs()">
+                        BFS
+                    </button>
+                </div>
+                <div>Caselles explorades: <span id="explored1"></span></div>
+                <div>Passes camí trobat: <span id="path1"></span></div>
+            </div>
+            <!-- Segon contenidor del canvas -->
+            <div id="canvasContainer2" class="col-md-6 canvas-container">
+                <canvas id="gameCanvas2" width="700" height="700"></canvas>
+                <div>
+                    <button onclick="dfs()">
+                        DFS
+                    </button>
+                </div>
+                <div>Caselles explorades: <span id="explored2"></span></div>
+                <div>Passes camí trobat: <span id="path2"></span></div>
+            </div>
+        </div>
         <div id="buttonContainer">
             <button onclick="paintCoinAndPlayer()">
                 Pintar moneda i jugador
@@ -39,12 +63,6 @@
             </button>
             <button onclick="deleteWalls()">
                 Esborrar parets
-            </button>
-            <button onclick="bfs()">
-                BFS
-            </button>
-            <button onclick="dfs()">
-                DFS
             </button>
         </div>
     </div>
@@ -86,7 +104,8 @@
 
             coinEaten = false;
 
-            drawMatrix();
+            drawMatrix1();
+            drawMatrix2();
         }
 
         const UP = [-1, 0];
@@ -98,6 +117,13 @@
         var monedaJ;
 
         async function dfs() {
+            const playerPos_backup = { ...playerPos };
+            const coinPos_backup = { ...coinPos };
+            const matrix_backup = structuredClone(matrix);
+            const visitats_backup = structuredClone(visitats);
+            const matrixpath_backup = structuredClone(matrixpath);
+            const path_backup = structuredClone(path);
+
             const i_ini = playerPos.y;
             const j_ini = playerPos.x;
 
@@ -105,6 +131,9 @@
             var found = false;
             pila.push([i_ini, j_ini]);
             matrixpath[i_ini][j_ini] = [];
+
+            var counter1 = 0;
+            var counter2 = 0;
 
             while (found == false && pila.length != 0) {
                 var currentposition = pila.pop();
@@ -116,7 +145,12 @@
                 }
 
                 visitats[currenti][currentj] = true; // Marcar com a visitat
-                drawMatrix(); // Dibuixar matriu per actualitzar visuals
+                document.getElementById('explored2').innerText = ++counter1;
+
+                // Dibuixar matriu per actualitzar visuals
+                // drawMatrix1(); 
+                drawMatrix2(); 
+
                 await new Promise(resolve => setTimeout(resolve, 23)); // Petita pausa per animació
 
                 if (matrix[currenti][currentj] == 'O') {
@@ -143,26 +177,31 @@
                         }
                         path[pathi][pathj] = true;
                     }
-                    drawMatrix(); // Actualitzar visuals amb el camí
+                    // Actualitzar visuals amb el camí
+                    /* drawMatrix1(); */
+                    drawMatrix2();
+
+                    counter2 = matrixpath[monedaI][monedaJ].length;
+                    document.getElementById('path2').innerText = counter2;
 
                     // Moure el jugador pel camí trobat
                     for (let i = 0; i < matrixpath[monedaI][monedaJ].length; i++) {
                         await new Promise(resolve => setTimeout(resolve, 300));
 
                         if (matrixpath[monedaI][monedaJ][i] == DOWN) {
-                            moveDown();
+                            moveDown2();
                         }
 
                         if (matrixpath[monedaI][monedaJ][i] == LEFT) {
-                            moveLeft();
+                            moveLeft2();
                         }
 
                         if (matrixpath[monedaI][monedaJ][i] == RIGHT) {
-                            moveRight();
+                            moveRight2();
                         }
 
                         if (matrixpath[monedaI][monedaJ][i] == UP) {
-                            moveUp();
+                            moveUp2();
                         }
                     }
                 } else {
@@ -183,6 +222,15 @@
                     }
                 }
             }
+
+            matrix = matrix_backup;
+            visitats = visitats_backup;
+            matrixpath = matrixpath_backup;
+            path = path_backup;
+            playerPos = playerPos_backup;
+            coinPos = coinPos_backup;
+
+            /* console.log(visitats); */
         }
 
         function paintWalls() {
@@ -197,7 +245,9 @@
                     wallCount++;
                 }
             }
-            drawMatrix(); // Actualitzar visuals
+             // Actualitzar visuals
+            drawMatrix1();
+            drawMatrix2();
         }
 
         function deleteWalls() {
@@ -208,10 +258,21 @@
                     }
                 }
             }
-            drawMatrix(); // Actualitzar visuals
+            // Actualitzar visuals
+            drawMatrix1();
+            drawMatrix2();
         }
 
         async function bfs() {
+            /* console.log(visitats); */
+            
+            const playerPos_backup = { ...playerPos };
+            const coinPos_backup = { ...coinPos };
+            const matrix_backup = structuredClone(matrix);
+            const visitats_backup = structuredClone(visitats);
+            const matrixpath_backup = structuredClone(matrixpath);
+            const path_backup = structuredClone(path);
+
             const i_ini = playerPos.y;
             const j_ini = playerPos.x;
 
@@ -219,6 +280,9 @@
             var found = false;
             cola.push([i_ini, j_ini]);
             matrixpath[i_ini][j_ini] = [];
+
+            var counter1 = 0;
+            var counter2 = 0;
 
             while (found == false && cola.length != 0) {
                 var currentposition = cola.shift();
@@ -230,7 +294,12 @@
                 }
 
                 visitats[currenti][currentj] = true; // Marcar com a visitat
-                drawMatrix(); // Dibuixar matriu per actualitzar visuals
+                document.getElementById('explored1').innerText = ++counter1;
+                
+                // Dibuixar matriu per actualitzar visuals
+                drawMatrix1(); 
+                //drawMatrix2(); 
+
                 await new Promise(resolve => setTimeout(resolve, 23)); // Petita pausa per animació
 
                 if (matrix[currenti][currentj] == 'O') {
@@ -257,26 +326,31 @@
                         }
                         path[pathi][pathj] = true;
                     }
-                    drawMatrix(); // Actualitzar visuals amb el camí
+                    // Actualitzar visuals amb el camí
+                    drawMatrix1(); 
+                    //drawMatrix2(); 
+
+                    counter2 = matrixpath[monedaI][monedaJ].length;
+                    document.getElementById('path1').innerText = counter2;
 
                     // Moure el jugador pel camí trobat
                     for (let i = 0; i < matrixpath[monedaI][monedaJ].length; i++) {
                         await new Promise(resolve => setTimeout(resolve, 300));
 
                         if (matrixpath[monedaI][monedaJ][i] == DOWN) {
-                            moveDown();
+                            moveDown1();
                         }
 
                         if (matrixpath[monedaI][monedaJ][i] == LEFT) {
-                            moveLeft();
+                            moveLeft1();
                         }
 
                         if (matrixpath[monedaI][monedaJ][i] == RIGHT) {
-                            moveRight();
+                            moveRight1();
                         }
 
                         if (matrixpath[monedaI][monedaJ][i] == UP) {
-                            moveUp();
+                            moveUp1();
                         }
                     }
                 } else {
@@ -297,64 +371,120 @@
                     }
                 }
             }
+
+            matrix = matrix_backup;
+            visitats = visitats_backup;
+            matrixpath = matrixpath_backup;
+            path = path_backup;
+            playerPos = playerPos_backup;
+            coinPos = coinPos_backup;
+
+            /* console.log(visitats); */
         }
 
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+        // Canvases i contextos
+        const canvas1 = document.getElementById("gameCanvas1");
+        const ctx1 = canvas1.getContext("2d");
+
+        const canvas2 = document.getElementById("gameCanvas2");
+        const ctx2 = canvas2.getContext("2d");
 
         const cellSize = 35; // Augmentem la mida de cada cel·la
 
-        function drawMatrix() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function drawMatrix1() {
+            // Esborrem i dibuixem al primer canvas
+            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+
             for (let row = 0; row < matrix.length; row++) {
                 for (let col = 0; col < matrix[row].length; col++) {
-                    if (matrix[row][col] === "X") {
-                        ctx.fillStyle = "blue"; // Jugador en blau
-                    } else if (matrix[row][col] === "O") {
-                        ctx.fillStyle = "yellow"; // Moneda en groc
-                    } else if (matrix[row][col] === "-") {
-                        ctx.fillStyle = "grey"; // Mur en gris
-                    } else if (path[row][col]) {
-                        ctx.fillStyle = "green"; // Camí en verd
-                    } else if (visitats[row][col]) {
-                        ctx.fillStyle = "lightgreen"; // Cel·la visitada en verd clar
-                    } else {
-                        ctx.fillStyle = "white"; // Cel·la buida
-                    }
-                    ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-                    ctx.strokeStyle = "black";
-                    ctx.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                    // Dibuixem cada cel·la al primer canvas
+                    drawCell(ctx1, row, col);
                 }
             }
         }
 
+        function drawMatrix2() {
+            // Esborrem i dibuixem al primer canvas
+            ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+            for (let row = 0; row < matrix.length; row++) {
+                for (let col = 0; col < matrix[row].length; col++) {
+                    // Dibuixem cada cel·la al segon canvas
+                    drawCell(ctx2, row, col);
+                }
+            }
+        }
+
+        function drawCell(ctx, row, col) {
+            if (matrix[row][col] === "X") {
+                ctx.fillStyle = "blue"; // Jugador en blau
+            } else if (matrix[row][col] === "O") {
+                ctx.fillStyle = "yellow"; // Moneda en groc
+            } else if (matrix[row][col] === "-") {
+                ctx.fillStyle = "grey"; // Mur en gris
+            } else if (path[row][col]) {
+                ctx.fillStyle = "green"; // Camí en verd
+            } else if (visitats[row][col]) {
+                ctx.fillStyle = "lightgreen"; // Cel·la visitada en verd clar
+            } else {
+                ctx.fillStyle = "white"; // Cel·la buida
+            }
+            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+            ctx.strokeStyle = "black";
+            ctx.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+
         paintCoinAndPlayer();
 
-        function moveUp() {
+        function moveUp1(paint = true) {
             if (playerPos.y > 0) {
-                handleMovement(playerPos.x, playerPos.y - 1);
+                handleMovement1(playerPos.x, playerPos.y - 1, paint);
             }
         }
 
-        function moveDown() {
+        function moveDown1(paint = true) {
             if (playerPos.y < matrix.length - 1) {
-                handleMovement(playerPos.x, playerPos.y + 1);
+                handleMovement1(playerPos.x, playerPos.y + 1, paint);
             }
         }
 
-        function moveLeft() {
+        function moveLeft1(paint = true) {
             if (playerPos.x > 0) {
-                handleMovement(playerPos.x - 1, playerPos.y);
+                handleMovement1(playerPos.x - 1, playerPos.y, paint);
             }
         }
 
-        function moveRight() {
+        function moveRight1(paint = true) {
             if (playerPos.x < matrix[0].length - 1) {
-                handleMovement(playerPos.x + 1, playerPos.y);
+                handleMovement1(playerPos.x + 1, playerPos.y, paint);
             }
         }
 
-        function handleMovement(newX, newY) {
+        function moveUp2(paint = true) {
+            if (playerPos.y > 0) {
+                handleMovement2(playerPos.x, playerPos.y - 1, paint);
+            }
+        }
+
+        function moveDown2(paint = true) {
+            if (playerPos.y < matrix.length - 1) {
+                handleMovement2(playerPos.x, playerPos.y + 1, paint);
+            }
+        }
+
+        function moveLeft2(paint = true) {
+            if (playerPos.x > 0) {
+                handleMovement2(playerPos.x - 1, playerPos.y, paint);
+            }
+        }
+
+        function moveRight2(paint = true) {
+            if (playerPos.x < matrix[0].length - 1) {
+                handleMovement2(playerPos.x + 1, playerPos.y, paint);
+            }
+        }
+
+        function handleMovement1(newX, newY, paint = true) {
             if (newX === coinPos.x && newY === coinPos.y) {
                 coinEaten = true;
             }
@@ -365,27 +495,54 @@
             playerPos.y = newY;
             matrix[playerPos.y][playerPos.x] = "X";
 
-            drawMatrix();
+            if (paint) drawMatrix1();
+        }
+
+        function handleMovement2(newX, newY, paint = true) {
+            if (newX === coinPos.x && newY === coinPos.y) {
+                coinEaten = true;
+            }
+
+            matrix[playerPos.y][playerPos.x] = ".";
+
+            playerPos.x = newX;
+            playerPos.y = newY;
+            matrix[playerPos.y][playerPos.x] = "X";
+
+            if (paint) drawMatrix2();
         }
 
         window.addEventListener("keydown", function (e) {
             switch (e.key) {
                 case "ArrowUp":
-                    moveUp();
+                    moveUp1(false);
+                    //moveUp2(false);
+                    drawMatrix1();
+                    drawMatrix2();
                     break;
                 case "ArrowDown":
-                    moveDown();
+                    moveDown1(false);
+                    //moveDown2(false);
+                    drawMatrix1();
+                    drawMatrix2();
                     break;
                 case "ArrowLeft":
-                    moveLeft();
+                    moveLeft1(false);
+                    //moveLeft2(false);
+                    drawMatrix1();
+                    drawMatrix2();
                     break;
                 case "ArrowRight":
-                    moveRight();
+                    moveRight1(false);
+                    //moveRight2(false);
+                    drawMatrix1();
+                    drawMatrix2();
                     break;
             }
         });
 
-        drawMatrix();
+        drawMatrix1();
+        drawMatrix2();
     </script>
 </body>
 </html>
